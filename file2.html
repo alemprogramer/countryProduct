@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Object Detection</title>
+<!-- TensorFlow.js and Custom Vision TF.js libraries -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.12.0/dist/tf.min.js"></script>
+<script src="https://unpkg.com/@microsoft/customvision-tfjs@1.3.0"></script>
+</head>
+<body>
+
+<input type="file" id="uploadInput" accept="image/*">
+<button onclick="predict()">Predict</button>
+
+<div id="result"></div>
+
+<script>
+async function predict() {
+    const uploadInput = document.getElementById('uploadInput');
+    const imageElement = document.getElementById('image');
+    const resultDiv = document.getElementById('result');
+
+    // Check if a file has been selected
+    if (uploadInput.files.length > 0) {
+        const file = uploadInput.files[0];
+
+        // Read the selected file as a Data URL
+        const reader = new FileReader();
+        reader.onload = async function(event) {
+            // Set the image source to the uploaded image
+            imageElement.src = event.target.result;
+
+            // Load the Object Detection model
+            const model = new cvstfjs.ObjectDetectionModel();
+            await model.loadModelAsync('model/model.json');
+
+            // Execute the object detection model on the image
+            const result = await model.executeAsync(imageElement);
+
+            // Display the prediction result
+            resultDiv.innerHTML = JSON.stringify(result);
+        };
+        reader.readAsDataURL(file);
+    } else {
+        alert('Please select an image file.');
+    }
+}
+</script>
+
+<img id="image" src="" alt="Uploaded Image" style="max-width: 100%; display: none;">
+
+</body>
+</html>

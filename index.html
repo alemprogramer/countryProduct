@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Object Detection</title>
+<!-- TensorFlow.js and Custom Vision TF.js libraries -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.12.0/dist/tf.min.js"></script>
+<script src="https://unpkg.com/@microsoft/customvision-tfjs@1.3.0"></script>
+</head>
+<body>
+
+<img id="image" src="semai.png" alt="Test Image" />
+
+<script>
+async function runObjectDetection() {
+    // Load the Object Detection model
+    const model = new cvstfjs.ObjectDetectionModel();
+    await model.loadModelAsync('model/model.json');
+
+    // Get the image element
+    const imageElement = document.getElementById('image');
+
+    // Execute the object detection model on the image
+    const result = await model.executeAsync(imageElement);
+
+    // Process the detection result
+    console.log(result);
+    // You can further process the result here, such as displaying bounding boxes on the image
+}
+
+// Run object detection when the page finishes loading
+window.onload = function() {
+    runObjectDetection();
+};
+</script>
+
+</body>
+</html>
