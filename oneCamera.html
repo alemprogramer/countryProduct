@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real-time Object Detection</title>
+<!-- TensorFlow.js and Custom Vision TF.js libraries -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.12.0/dist/tf.min.js"></script>
+<script src="https://unpkg.com/@microsoft/customvision-tfjs@1.3.0"></script>
+<style>
+     .container {
+        width: 70%px;
+        margin: 10px auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        
+    }
+    .btn{
+        display: inline;
+        margin-bottom:5px ;
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <button class="btn" onclick="toggleCamera()">Toggle Camera</button>
+        <canvas id="canvas" style="width: 500px;"></canvas>
+    </div>
+
+
+<script>
+let videoElement;
+let stream;
+let running = false;
+
+async function toggleCamera() {
+    if (running) {
+        stopCamera();
+    } else {
+        startCamera();
+    }
+}
+
+async function startCamera() {
+    if (!videoElement) {
+        videoElement = document.createElement('video');
+        videoElement.setAttribute('autoplay', '');
+        videoElement.setAttribute('playsinline', '');
+    }
+
+    const constraints = {
+        video: true
+    };
+
+    try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoElement.srcObject = stream;
+
+        if (!document.body.contains(videoElement)) {
+            // document.body.appendChild(videoElement); // this is for one camera
+
+            videoElement.addEventListener('loadedmetadata', () => {
+                running = true;
+                detectFrame();
+            });
+        }
+    } catch (err) {
+        console.error('Error accessing the camera:', err);
+    }
+}
+
+function stopCamera() {
+    if (stream) {
+        const tracks = stream.getTracks();
+        tracks.forEach(track => track.stop());
+    }
+    if (videoElement && document.body.contains(videoElement)) {
+        videoElement.remove();
+    }
+
+    const canvas = document.getElementById('canvas');
+    if (canvas && document.body.contains(canvas)) {
+        canvas.remove();
+    }
+    running = false;
+}
+
+async function detectFrame() {
+    if (running) {
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const model = new cvstfjs.ObjectDetectionModel();
+        await model.loadModelAsync('model/model.json');
+
+        // Set canvas dimensions to match video dimensions
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+
+        // Draw video frame on the canvas
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+        // Execute the object detection model on the canvas
+        const result = await model.executeAsync(canvas);
+
+        // Process the detection result
+        if (result && Array.isArray(result[0]) && Array.isArray(result[1]) && Array.isArray(result[2])) {
+            const boundingBoxes = result[0];
+            const probabilities = result[1];
+            const classIds = result[2];
+            const country = ["Bangladesh", "India"]; // Define country names
+
+            // Draw bounding boxes and labels on the canvas
+            for (let i = 0; i < boundingBoxes.length; i++) {
+                const [x1, y1, x2, y2] = boundingBoxes[i];
+                const probability = probabilities[i];
+                const classId = classIds[i];
+
+                // Draw bounding box if probability is above threshold
+                if (probability >= 0.3) {
+                    const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
+                    ctx.strokeStyle = randomColor;
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x1 * canvas.width, y1 * canvas.height, (x2 - x1) * canvas.width, (y2 - y1) * canvas.height);
+                    ctx.font = '20px Arial';
+                    ctx.fillStyle = randomColor;
+                    ctx.fillText(`Country Name:  ${country[classId]} (${(probability * 100).toFixed(2)}%)`, x1 * canvas.width, y1 * canvas.height - 5);
+                }
+            }
+        } else {
+            console.error('Detection result is invalid:', result);
+        }
+
+        // Call detectFrame recursively for the next frame
+        requestAnimationFrame(detectFrame);
+    }
+}
+</script>
+
+</body>
+</html>
