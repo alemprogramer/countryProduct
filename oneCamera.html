@@ -46,7 +46,8 @@
         <div class="loader" id="loader"></div>
         <canvas id="canvas" style="width: 500px;"></canvas>
         <div class="select">
-            <label for="videoSource">Video source: </label><select id="videoSource"></select>
+            <label for="videoSource">Video source: </label>
+            <select id="videoSource" onchange="startDeviceDetect()"></select>
         </div>
     </div>
 
@@ -61,7 +62,7 @@ async function toggleCamera() {
     } else {
         showLoader(); // Show loader while starting the camera
         await startCamera(); // Wait for camera to start
-        startDeviceDetect();
+        // startDeviceDetect(); // Start detecting video devices
         // hideLoader(); // Hide loader when camera is started
     }
 }
@@ -107,7 +108,7 @@ function stopCamera() {
     if (canvas && document.body.contains(canvas)) {
         canvas.remove();
     }
-    stopDetectDevice()
+    stopDetectDevice(); // Stop detecting video devices
     running = false;
 }
 
@@ -168,6 +169,34 @@ function showLoader() {
 
 function hideLoader() {
     document.getElementById('loader').style.display = 'none';
+}
+
+async function startDeviceDetect() {
+    const videoSource = videoSourceSelect.value;
+    const constraints = {
+        video: { deviceId: videoSource ? { exact: videoSource } : undefined }
+    };
+
+    // Stop the current camera stream
+    stopCamera();
+
+    // Start camera with new constraints
+    try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoElement.srcObject = stream;
+        running = true;
+        detectFrame();
+    } catch (err) {
+        console.error('Error accessing the camera:', err);
+        hideLoader(); // Hide loader if camera access fails
+    }
+}
+
+function stopDetectDevice() {
+    // Stop the mediaDevices enumeration
+    if (videoSourceSelect) {
+        videoSourceSelect.removeEventListener('change', startDeviceDetect);
+    }
 }
 </script>
 
