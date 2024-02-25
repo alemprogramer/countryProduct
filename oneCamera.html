@@ -34,13 +34,20 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+    .select{
+        margin-top: 20px;
+    }
 </style>
 </head>
 <body>
     <div class="container">
         <button class="btn" onclick="toggleCamera()">Toggle Camera</button>
+        
         <div class="loader" id="loader"></div>
         <canvas id="canvas" style="width: 500px;"></canvas>
+        <div class="select">
+            <label for="videoSource">Video source: </label><select id="videoSource"></select>
+        </div>
     </div>
 
 <script>
@@ -54,6 +61,7 @@ async function toggleCamera() {
     } else {
         showLoader(); // Show loader while starting the camera
         await startCamera(); // Wait for camera to start
+        startDeviceDetect();
         // hideLoader(); // Hide loader when camera is started
     }
 }
@@ -99,6 +107,7 @@ function stopCamera() {
     if (canvas && document.body.contains(canvas)) {
         canvas.remove();
     }
+    stopDetectDevice()
     running = false;
 }
 
@@ -161,6 +170,8 @@ function hideLoader() {
     document.getElementById('loader').style.display = 'none';
 }
 </script>
+
+<script src="gotCamera.js"></script>
 
 </body>
 </html>
