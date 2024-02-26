@@ -8,37 +8,35 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.12.0/dist/tf.min.js"></script>
 <script src="https://unpkg.com/@microsoft/customvision-tfjs@1.3.0"></script>
 <link rel="stylesheet" href="style.css">
-<style>
-    /* #videoElement {
-        width: 500px;
-    }
-    #resultImage {
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        max-width: 90%;
-        max-height: 90%;
-    } */
-</style>
+
 </head>
 <body>
+    <div class="container">
+        <h1>Product Country Detection with Camera</h1>
+        <div class="load">
+            <div class="loader" id="loader"></div>
+        </div>
 
-<h1>Object Detection with Camera</h1>
+        <div id="cameraDiv">
+            <video autoplay="true" id="videoElement"></video>
+            <br>
+        </div>
+        <button id="TakePicture"  class="btn" onclick="takePictureAndPredict()">Take Picture & Predict</button>
 
-<div id="cameraDiv">
-    <video autoplay="true" id="videoElement"></video>
-    <br>
-    <button onclick="takePictureAndPredict()">Take Picture & Predict</button>
-</div>
+        <img id="resultImage">
+        <button id="TryAgain" class="btn" onclick="restartCamera()">Try Again</button>
+    </div>
 
-<img id="resultImage">
 
 <script>
 let stream;
+buttonHidden("TryAgain");
+showLoader();
+
 
 async function takePictureAndPredict() {
+    showLoader();
+    buttonHidden("TakePicture")
     const video = document.getElementById('videoElement');
     const cameraDiv = document.getElementById('cameraDiv');
 
@@ -70,17 +68,24 @@ async function takePictureAndPredict() {
 
     // Load the Object Detection model
     const model = new cvstfjs.ObjectDetectionModel();
-    await model.loadModelAsync('../model/model.json');
+    await model.loadModelAsync('../newmodel/model.json');
 
     // Execute the object detection model on the image
     const result = await model.executeAsync(canvas);
+    console.log("🚀 ~ takePictureAndPredict ~ result:", result)
 
     // Check if result is valid
     if (result && Array.isArray(result[0]) && Array.isArray(result[1]) && Array.isArray(result[2])) {
         const boundingBoxes = result[0];
         const probabilities = result[1];
         const classIds = result[2];
-        const country = ["Bangladesh", "India"];
+        // const country = ["Bangladesh", "India"];
+        const country = [
+                            "American",
+                            "Bangladesh",
+                            "India",
+                            "Israel",
+                        ];
 
         // Draw bounding boxes and labels on the image
         for (let i = 0; i < boundingBoxes.length; i++) {
@@ -88,7 +93,7 @@ async function takePictureAndPredict() {
             const probability = probabilities[i];
             const classId = classIds[i];
 
-            if (probability >= 0.3) {
+            if (probability >= 0.03 ) {
                 const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
 
                 // Draw bounding box
@@ -106,6 +111,8 @@ async function takePictureAndPredict() {
         // Show the result image
         document.getElementById('resultImage').src = canvas.toDataURL();
         document.getElementById('resultImage').style.display = 'block';
+        hideLoader()
+        buttonShow("TryAgain")
     } else {
         console.error('Prediction result is invalid:', result);
     }
@@ -113,6 +120,8 @@ async function takePictureAndPredict() {
 
 // Function to restart the camera
 function restartCamera() {
+    showLoader();
+    buttonHidden("TryAgain");
     const canvas = document.getElementById('canvas');
     if (canvas && document.body.contains(canvas)) {
         canvas.remove();
@@ -127,10 +136,30 @@ function restartCamera() {
             stream = str;
             video.srcObject = stream;
             video.play();
+            hideLoader();
+            buttonShow("TakePicture")
         })
         .catch(function(err) {
             console.log("An error occurred: " + err);
         });
+    
+    
+}
+
+function showLoader() {
+    document.getElementById('loader').style.display = 'block';
+}
+
+function hideLoader() {
+    document.getElementById('loader').style.display = 'none';
+}
+
+function buttonShow(id){
+    document.getElementById(id).style.display = 'block';
+}
+
+function buttonHidden(id){
+    document.getElementById(id).style.display = 'none';
 }
 
 // Access the camera and set the video element source
@@ -139,6 +168,7 @@ navigator.mediaDevices.getUserMedia({ video: true })
         stream = str;
         const video = document.getElementById('videoElement');
         video.srcObject = stream;
+        hideLoader();
     })
     .catch(function(err) {
         console.log("An error occurred: " + err);
@@ -146,7 +176,7 @@ navigator.mediaDevices.getUserMedia({ video: true })
 
 </script>
 
-<button onclick="restartCamera()">Open Camera</button>
+
 
 </body>
 </html>
