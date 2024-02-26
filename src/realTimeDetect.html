@@ -45,10 +45,6 @@
         
         <div class="loader" id="loader"></div>
         <canvas id="canvas" style="width: 500px; height: 530px;"></canvas>
-        <div class="select">
-            <label for="videoSource">Video source: </label>
-            <select id="videoSource" onchange="startDeviceDetect()"></select>
-        </div>
     </div>
 
 <script>
@@ -74,9 +70,7 @@ async function startCamera() {
         videoElement.setAttribute('playsinline', '');
     }
 
-    const constraints = {
-        video: true
-    };
+    const constraints = { video: { facingMode: "environment" } }
 
     try {
         stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -108,7 +102,6 @@ function stopCamera() {
     if (canvas && document.body.contains(canvas)) {
         canvas.remove();
     }
-    stopDetectDevice(); // Stop detecting video devices
     running = false;
 }
 
@@ -117,7 +110,7 @@ async function detectFrame() {
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const model = new cvstfjs.ObjectDetectionModel();
-        await model.loadModelAsync('model/model.json');
+        await model.loadModelAsync('../models/version-0.1/model.json');
 
         // Set canvas dimensions to match video dimensions
         canvas.width = videoElement.videoWidth;
@@ -191,16 +184,9 @@ async function startDeviceDetect() {
         hideLoader(); // Hide loader if camera access fails
     }
 }
-
-function stopDetectDevice() {
-    // Stop the mediaDevices enumeration
-    if (videoSourceSelect) {
-        videoSourceSelect.removeEventListener('change', startDeviceDetect);
-    }
-}
 </script>
 
-<script src="gotCamera.js"></script>
+<!-- <script src="gotCamera.js"></script> -->
 
 </body>
 </html>

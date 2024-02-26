@@ -47,7 +47,7 @@ async function predict() {
 
                 // Load the Object Detection model
                 const model = new cvstfjs.ObjectDetectionModel();
-                await model.loadModelAsync('model/model.json');
+                await model.loadModelAsync('../models/version-0.2/model.json');
 
                 // Execute the object detection model on the image
                 const result = await model.executeAsync(canvas);
