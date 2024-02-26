@@ -64,6 +64,8 @@
 
 
 
+
+
 /* Add these styles to your existing CSS file or style block */
 
 /* Title */
@@ -106,4 +108,12 @@ h1 {
     }
 }
 
+
+@media only screen and (max-width: 600px) {
+    .btn {
+        padding: 5px 10px; /* Adjust padding for smaller screens */
+        font-size: 14px; /* Adjust font size for smaller screens */
+        margin: 5px; /* Adjust margin for smaller screens */
+    }
+}
 
