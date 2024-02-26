@@ -27,11 +27,14 @@
     list-style: none;
 }
 .btn{
-    background: rgb(73, 73, 223);
-    /* margin:10px; */
+    background: #3F86FF;
     padding:1rem;
     margin-top:.5rem;
     border-radius:5px;
+    color:white;
+    box-shadow: 1px, 1px 2px rgba(0,0,0,0.1);
+    cursor: pointer;
+    
 }
 a{
     color:white;

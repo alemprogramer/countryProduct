@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.12.0/dist/tf.min.js"></script>
+    <script src="https://unpkg.com/@microsoft/customvision-tfjs@1.3.0"></script>
+
+    <link rel="stylesheet" href="../../style/uploadImage.css">
+    <link rel="stylesheet" href="../../style/style.css">
+</head>
+<body>
+    <!-- Upload Area -->
+    <div id="uploadArea" class="upload-area">
+        <!-- Header -->
+        <div class="upload-area__header">
+        <h1 class="upload-area__title">Upload your file</h1>
+        <p class="upload-area__paragraph">
+            File should be an image
+            <strong class="upload-area__tooltip">
+            Like
+            <span class="upload-area__tooltip-data"></span> <!-- Data Will be Comes From Js -->
+            </strong>
+        </p>
+        </div>
+        <!-- End Header -->
+    
+        <!-- Drop Zoon -->
+        <div id="dropZoon" class="upload-area__drop-zoon drop-zoon">
+        <span class="drop-zoon__icon">
+            <i class='bx bxs-file-image'></i>
+        </span>
+        <p class="drop-zoon__paragraph">Drop your file here or Click to browse</p>
+        <span id="loadingText" class="drop-zoon__loading-text">Please Wait</span>
+        <img src="" alt="Preview Image" id="previewImage" class="drop-zoon__preview-image" draggable="false">
+        <input type="file" id="fileInput" class="drop-zoon__file-input" accept="image/*">
+        </div>
+        <!-- End Drop Zoon -->
+    
+        <!-- File Details -->
+        <div id="fileDetails" class="upload-area__file-details file-details">
+        <h3 class="file-details__title">Uploaded File</h3>
+    
+        <div id="uploadedFile" class="uploaded-file" style="display: flex;flex-direction: column;">
+            <div class="uploaded-file__icon-container">
+            <i class='bx bxs-file-blank uploaded-file__icon'></i>
+            <span class="uploaded-file__icon-text"></span> <!-- Data Will be Comes From Js -->
+            </div>
+    
+            <div id="uploadedFileInfo" class="uploaded-file__info">
+            <span class="uploaded-file__name">Proejct 1</span>
+            <span class="uploaded-file__counter">0%</span>
+            </div>
+            <br/>
+            <button class="btn" onclick="predict()">Predict</button>
+        </div>
+
+      
+    </div>
+        <!-- End File Details -->
+    </div>
+    <!-- End Upload Area -->
+    <div  id="result" class="result">
+        <canvas id="canvas" style="width: 500px;"></canvas>
+        <button class="btn" onclick="tryAgain()"> Try Again</button>
+    </div>
+  <script>
+    function divShow(id){
+        document.getElementById(id).style.display = 'flex';
+    }
+    function divHidden(id){
+        document.getElementById(id).style.display = 'none';
+    }
+    function tryAgain(){
+        document.getElementById("uploadArea").style.display = 'block';
+        divHidden("result");
+    }
+    divHidden("result");
+    async function predict() {
+
+        // let country =[
+        //     "Bangladesh",
+        //     "India"
+        // ]
+
+        const country = [
+                            "American",
+                            "Bangladesh",
+                            "India",
+                            "Israel",
+                        ];
+        const uploadInput = document.getElementById('fileInput');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+    
+        // Check if a file has been selected
+        if (uploadInput.files.length > 0) {
+            const file = uploadInput.files[0];
+    
+            // Read the selected file as a Data URL
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const image = new Image();
+                image.onload = async function() {
+                    // Set canvas dimensions to match image dimensions
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+    
+                    // Draw the image on the canvas
+                    ctx.drawImage(image, 0, 0);
+    
+                    // Load the Object Detection model
+                    const model = new cvstfjs.ObjectDetectionModel();
+                    await model.loadModelAsync('../../models/version-0.2/model.json');
+    
+                    // Execute the object detection model on the image
+                    const result = await model.executeAsync(canvas);
+                    console.log("🚀 ~ image.onload=function ~ result:", result)
+    
+                    
+    
+                    // Check if result is valid
+                    if (result && Array.isArray(result[0]) && Array.isArray(result[1]) && Array.isArray(result[2])) {
+                        const boundingBoxes = result[0];
+                        const probabilities = result[1];
+                        const classIds = result[2];
+    
+                        // Draw bounding boxes and labels on the image
+                        for (let i = 0; i < boundingBoxes.length; i++) {
+                            const [x1, y1, x2, y2] = boundingBoxes[i];
+                            const probability = probabilities[i];
+                            const classId = classIds[i];
+    
+                            if (probability >= 0.3) {
+                                const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+    
+                            // Draw bounding box
+                            ctx.strokeStyle = randomColor ;
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(x1 * canvas.width, y1 * canvas.height, (x2 - x1) * canvas.width, (y2 - y1) * canvas.height);
+    
+                            // Draw label
+                            ctx.font = '20px Arial';
+                            ctx.fillStyle = randomColor;
+                            ctx.fillText(`Country Name:  ${country[classId]} (${(probability * 100).toFixed(2)}%)`, x1 * canvas.width, y1 * canvas.height - 5);
+                            }
+                        }
+                    } else {
+                        console.error('Prediction result is invalid:', result);
+                    }
+                };
+                image.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+            divShow("result");
+            divHidden("uploadArea")
+        } else {
+            alert('Please select an image file.');
+        }
+    }
+    
+    
+    </script>
+    <script src="../../utils/uploader.js" ></script>
+
+</body>
+</html>

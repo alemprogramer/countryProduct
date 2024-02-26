@@ -37,11 +37,20 @@
     .select{
         margin-top: 20px;
     }
+    .btn{
+        background: #3F86FF;
+        padding:1rem;
+        margin-top:.5rem;
+        border-radius:5px;
+        color:white;
+        box-shadow: 1px, 1px 2px rgba(0,0,0,0.1);
+        cursor: pointer;
+    }
 </style>
 </head>
 <body>
     <div class="container">
-        <button class="btn" onclick="toggleCamera()">Toggle Camera</button>
+        <button  class="btn" id="button" onclick="toggleCamera()">Camera ON</button>
         
         <div class="loader" id="loader"></div>
         <canvas id="canvas" style="width: 500px; height: 530px;"></canvas>
@@ -51,15 +60,17 @@
 let videoElement;
 let stream;
 let running = false;
+let button = document.getElementById("button");
 
 async function toggleCamera() {
     if (running) {
         stopCamera();
+        button.textContent = "Camera ON";
     } else {
+
         showLoader(); // Show loader while starting the camera
         await startCamera(); // Wait for camera to start
-        // startDeviceDetect(); // Start detecting video devices
-        // hideLoader(); // Hide loader when camera is started
+        button.textContent = "Camera Off";
     }
 }
 
