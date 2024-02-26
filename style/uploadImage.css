@@ -324,6 +324,22 @@
     align-items: center;
     
   }
+  .loader{
+    overflow: hidden;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+  }
+
+  .loader img{
+    
+    width: 300px;
+    height: 300px;
+    object-fit: cover;
+    transform: scale(2.3,2.3);
+   
+  }
+
   
   
 

@@ -61,12 +61,19 @@
         <!-- End File Details -->
     </div>
     <!-- End Upload Area -->
+
+    <div class="loader" id="loader">
+        <img src="../../images/loader.gif" alt="">
+    </div>
+
+
     <div  id="result" class="result">
         <canvas id="canvas" ></canvas>
         <button class="btn" onclick="tryAgain()"> Try Again</button>
     </div>
   <script>
     function divShow(id){
+        console.log('show');
         document.getElementById(id).style.display = 'flex';
     }
     function divHidden(id){
@@ -76,8 +83,11 @@
         document.getElementById("uploadArea").style.display = 'block';
         divHidden("result");
     }
+    divHidden("loader")
     divHidden("result");
     async function predict() {
+
+        divShow("loader")
 
         // let country =[
         //     "Bangladesh",
@@ -146,6 +156,8 @@
                             ctx.fillText(`Country Name:  ${country[classId]} (${(probability * 100).toFixed(2)}%)`, x1 * canvas.width, y1 * canvas.height - 5);
                             }
                         }
+                        divHidden("loader");
+                        divShow("result");
                     } else {
                         console.error('Prediction result is invalid:', result);
                     }
@@ -153,7 +165,7 @@
                 image.src = event.target.result;
             };
             reader.readAsDataURL(file);
-            divShow("result");
+            
             divHidden("uploadArea")
         } else {
             alert('Please select an image file.');
