@@ -50,6 +50,15 @@
 a{
     color:rgb(63, 134, 255);;
     text-decoration: none;
+    text-transform: capitalize;
     
     
 }
+
+#canvas {
+    width: 70%;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+}
+
