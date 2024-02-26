@@ -9,30 +9,59 @@
 <script src="https://unpkg.com/@microsoft/customvision-tfjs@1.3.0"></script>
 <link rel="stylesheet" href="style.css">
 <style>
-    #videoElement {
+    /* #videoElement {
         width: 500px;
     }
+    #resultImage {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 90%;
+        max-height: 90%;
+    } */
 </style>
 </head>
 <body>
 
 <h1>Object Detection with Camera</h1>
 
-<div>
+<div id="cameraDiv">
     <video autoplay="true" id="videoElement"></video>
     <br>
-    <button onclick="takePictureAndPredict()">c</button>
+    <button onclick="takePictureAndPredict()">Take Picture & Predict</button>
 </div>
 
-<canvas id="canvas" style="width: 500px;"></canvas>
+<img id="resultImage">
 
 <script>
-
+let stream;
 
 async function takePictureAndPredict() {
     const video = document.getElementById('videoElement');
-    const canvas = document.getElementById('canvas');
+    const cameraDiv = document.getElementById('cameraDiv');
+
+    // Remove existing canvas if it exists
+    const existingCanvas = document.getElementById('canvas');
+    if (existingCanvas) {
+        existingCanvas.remove();
+    }
+
+    // Create a new canvas
+    const canvas = document.createElement('canvas');
+    canvas.id = 'canvas';
+    canvas.style.display = 'none';
+    cameraDiv.appendChild(canvas);
     const ctx = canvas.getContext('2d');
+
+    // Stop the camera stream
+    video.pause();
+    stream.getTracks()[0].stop();
+
+    // Show the canvas and hide the video
+    cameraDiv.style.display = 'none';
+    canvas.style.display = 'block';
 
     // Capture frame from video
     canvas.width = video.videoWidth;
@@ -45,7 +74,6 @@ async function takePictureAndPredict() {
 
     // Execute the object detection model on the image
     const result = await model.executeAsync(canvas);
-    console.log("🚀 ~ takePictureAndPredict ~ result:", result)
 
     // Check if result is valid
     if (result && Array.isArray(result[0]) && Array.isArray(result[1]) && Array.isArray(result[2])) {
@@ -74,14 +102,41 @@ async function takePictureAndPredict() {
                 ctx.fillText(`Country Name:  ${country[classId]} (${(probability * 100).toFixed(2)}%)`, x1 * canvas.width, y1 * canvas.height - 5);
             }
         }
+
+        // Show the result image
+        document.getElementById('resultImage').src = canvas.toDataURL();
+        document.getElementById('resultImage').style.display = 'block';
     } else {
         console.error('Prediction result is invalid:', result);
     }
 }
 
+// Function to restart the camera
+function restartCamera() {
+    const canvas = document.getElementById('canvas');
+    if (canvas && document.body.contains(canvas)) {
+        canvas.remove();
+    }
+    document.getElementById('resultImage').style.display = 'none';
+    const video = document.getElementById('videoElement');
+    video.srcObject = null;
+    const cameraDiv = document.getElementById('cameraDiv');
+    cameraDiv.style.display = 'block';
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(str) {
+            stream = str;
+            video.srcObject = stream;
+            video.play();
+        })
+        .catch(function(err) {
+            console.log("An error occurred: " + err);
+        });
+}
+
 // Access the camera and set the video element source
 navigator.mediaDevices.getUserMedia({ video: true })
-    .then(function(stream) {
+    .then(function(str) {
+        stream = str;
         const video = document.getElementById('videoElement');
         video.srcObject = stream;
     })
@@ -90,6 +145,8 @@ navigator.mediaDevices.getUserMedia({ video: true })
     });
 
 </script>
+
+<button onclick="restartCamera()">Open Camera</button>
 
 </body>
 </html>
